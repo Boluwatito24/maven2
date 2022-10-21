@@ -1,30 +1,61 @@
-node('built-in') 
+@Library('sharedlibrary')_
+pipeline
 {
-    stage('ContinuousDownload') 
+    agent any
+    stages
     {
-         git 'https://github.com/Boluwatito24/maven2.git'
-    }
-    stage('ContinuousBuild') 
-    {
-         sh 'mvn package'
-    }
-    stage('ContinuousDeployment')
-    {
-        deploy adapters: [tomcat9(credentialsId: 'f1af9dcf-4b4b-450b-97d8-fe2203953784', path: '', url: 'http://172.31.20.40:8080')], contextPath: 'testapp', war: '**/*.war'
-    }
-    stage('ContinuousTesting')
-    {
-        git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
-        sh 'java -jar /home/ubuntu/.jenkins/workspace/ScriptedPipeline2/testing.jar'
+        stage('ContinuousDownload-Master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.newGit("https://github.com/intelliqittrainings/maven.git")
+                }
+            }
+        }
+         stage('ContinuousBuild_Master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.newMaven()
+                }
+            }
+        }
+        stage('ContinuousDeployment_Master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.newDeploy("http://172.31.20.40:8080","testapp")
+                }
+            }
+        }
+        stage('ContinuousTesting_Mater')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.newGit("https://github.com/intelliqittrainings/FunctionalTesting.git")
+                    cicd.runSelenium("Pipelinewithlibraries")
+                }
+            }
+        }
+        stage('ContinuousDelivery_Master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.newDeploy("http://172.31.25.20:8080","prodapp")
+                }
+            }
+        }
+        
         
     }
-    stage('ContinuousDelivery')
-    {
-        deploy adapters: [tomcat9(credentialsId: 'f1af9dcf-4b4b-450b-97d8-fe2203953784', path: '', url: 'http://172.31.25.20:8080')], contextPath: 'prodapp', war: '**/*.war'
-    }
-    
-    
-    
-    
-    
 }
